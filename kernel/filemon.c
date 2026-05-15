@@ -17,7 +17,12 @@ void filemon_init(void) {
 
 void log_file_access(enum FileOp op, const char *path) {
   struct proc *p = myproc();
+
+  if (strncmp(p->name, "filemon", 8) == 0)
+    return;
+
   acquire(&file_log.lock);
+
   
   int idx = file_log.next_index % MAX_LOG_ENTRIES;
   struct FileLogEntry *e = &file_log.entries[idx];
