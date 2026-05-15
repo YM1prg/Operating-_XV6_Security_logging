@@ -31,6 +31,9 @@ OBJS = \
   $K/kernelvec.o \
   $K/plic.o \
   $K/virtio_disk.o
+  $/filemon.o \
+  $/sysfilemon.o \
+
 
 OBJS_KCSAN = \
   $K/start.o \
@@ -198,6 +201,8 @@ UPROGS=\
 	$U/_myfristprogram\
 	$U/_test\
 	$U/_comchannel\
+	$U/_filemon \
+
 
 ifeq ($(LAB),syscall)
 UPROGS += \

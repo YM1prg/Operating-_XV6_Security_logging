@@ -80,17 +80,37 @@ sys_read(void)
   return fileread(f, p, n);
 }
 
+static void fd_to_str(int fd, char *buf) {
+  int i = 0, n = fd;
+  buf[i++] = 'f'; buf[i++] = 'd'; buf[i++] = ':';
+  if(n == 0) buf[i++] = '0';
+  else { 
+    char tmp[10]; int j = 0; 
+    while(n > 0) { tmp[j++] = '0' + (n % 10); n /= 10; } 
+    while(j > 0) buf[i++] = tmp[--j]; 
+  }
+  buf[i] = '\0';
+}
+
 uint64
 sys_write(void)
 {
   struct file *f;
-  int n;
+  int n, fd;
   uint64 p;
-  
+
+  //user-space buffer address
   argaddr(1, &p);
+
+ //byte count
   argint(2, &n);
-  if(argfd(0, 0, &f) < 0)
+ 
+  if(argfd(0, &fd, &f) < 0)  // ← Capture 'fd' file descriptor 0
     return -1;
+
+  char fd_str[12];                      // 1. Safe kernel buffer
+  fd_to_str(fd, fd_str);                // 2. Convert int → "fd:3"
+  log_file_access(OP_WRITE, fd_str); 
 
   return filewrite(f, p, n);
 }
@@ -103,10 +123,22 @@ sys_close(void)
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
-  myproc()->ofile[fd] = 0;
-  fileclose(f);
+
+  // ★ EXACT INTERCEPTION: Log the close operation
+
+  char fd_str[12];                      
+
+  fd_to_str(fd, fd_str);                
+
+  log_file_access(OP_CLOSE, fd_str);  
+
+  myproc()->ofile[fd] = 0;              // O: clear FD from process table
+
+  fileclose(f);                         // O: free kernel file struct
+
   return 0;
 }
+
 
 uint64
 sys_fstat(void)
@@ -305,7 +337,8 @@ create(char *path, short type, short major, short minor)
 uint64
 sys_open(void)
 {
-  char path[MAXPATH];
+
+ char path[MAXPATH];
   int fd, omode;
   struct file *f;
   struct inode *ip;
@@ -315,9 +348,13 @@ sys_open(void)
   if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
+  // ★ SECURE MONITOR: Intercept at syscall boundary
+  log_file_access(OP_OPEN, path);
+
   begin_op();
 
-  if(omode & O_CREATE){
+
+ if(omode & O_CREATE){
     ip = create(path, T_FILE, 0, 0);
     if(ip == 0){
       end_op();
