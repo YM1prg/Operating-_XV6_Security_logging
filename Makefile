@@ -196,12 +196,12 @@ UPROGS=\
 	$U/_wc\
 	$U/_zombie\
 	$U/_logstress\
+	$U/_filemon\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_myfristprogram\
 	$U/_test\
 	$U/_comchannel\
-	$U/_filemon\
 
 
 ifeq ($(LAB),syscall)

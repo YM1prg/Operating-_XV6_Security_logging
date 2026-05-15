@@ -1,14 +1,12 @@
 // kernel/filemon.h (updated)
-
 #ifndef FILEMON_H
 #define FILEMON_H
 
 #include "types.h"
 #include "spinlock.h"
+#include "param.h"  // ←MAXPATH (128)
 
-
-
-#define MAX_LOG_ENTRIES 64
+#define MAX_LOG_ENTRIES 128 
 #define MAX_PATH MAXPATH  // 128, matches xv6 exactly
 #define MAX_COMM 16       // Matches proc.name[16]
 
